@@ -40,10 +40,10 @@ extern "C" {
 
 #define MAX_TRACKS 1024
 #define TRACK_UNKNOWN 0
-#define TRACK_AUDIO   1
+#define TRACK_AUDIO_AAC   1
 #define TRACK_VIDEO   2
 #define TRACK_SYSTEM  3
-
+#define TRACK_AUDIO_ALAC   4
 
 #define SUBATOMIC 128
 
@@ -93,6 +93,7 @@ extern "C" {
 #define ATOM_SEASON         170
 #define ATOM_EPISODE        171
 #define ATOM_PODCAST        172
+#define ATOM_ALAC        	173
 
 #define ATOM_UNKNOWN 255
 #define ATOM_FREE ATOM_UNKNOWN

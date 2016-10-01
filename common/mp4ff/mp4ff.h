@@ -54,6 +54,11 @@ typedef struct
 /* mp4 main file structure */
 typedef void* mp4ff_t;
 
+#define TRACK_UNKNOWN 0
+#define TRACK_AUDIO_AAC   1
+#define TRACK_VIDEO   2
+#define TRACK_SYSTEM  3
+#define TRACK_AUDIO_ALAC   4
 
 /* API */
 
@@ -87,6 +92,7 @@ uint32_t mp4ff_get_max_bitrate(const mp4ff_t *f, const int32_t track);
 int64_t mp4ff_get_track_duration(const mp4ff_t *f, const int32_t track); //returns (-1) if unknown
 int64_t mp4ff_get_track_duration_use_offsets(const mp4ff_t *f, const int32_t track); //returns (-1) if unknown
 uint32_t mp4ff_get_sample_rate(const mp4ff_t *f, const int32_t track);
+uint32_t mp4ff_get_sample_size(const mp4ff_t *f, const int32_t track);
 uint32_t mp4ff_get_channel_count(const mp4ff_t * f,const int32_t track);
 uint32_t mp4ff_get_audio_type(const mp4ff_t * f,const int32_t track);
 

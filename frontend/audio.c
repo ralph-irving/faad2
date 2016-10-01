@@ -40,7 +40,7 @@
 
 
 audio_file *open_audio_file(char *infile, int samplerate, int channels,
-                            int outputFormat, int fileType, long channelMask)
+                            int outputFormat, int fileType, long channelMask, unsigned long expectedSamples)
 {
     audio_file *aufile = malloc(sizeof(audio_file));
 
@@ -48,7 +48,7 @@ audio_file *open_audio_file(char *infile, int samplerate, int channels,
 
     aufile->samplerate = samplerate;
     aufile->channels = channels;
-    aufile->total_samples = 0;
+    aufile->total_samples = expectedSamples;
     aufile->fileType = fileType;
     aufile->channelMask = channelMask;
 
@@ -95,6 +95,8 @@ audio_file *open_audio_file(char *infile, int samplerate, int channels,
             write_wav_header(aufile);
     }
 
+    aufile->total_samples = 0;
+
     return aufile;
 }
 
@@ -117,6 +119,15 @@ int write_audio_file(audio_file *aufile, void *sample_buffer, int samples, int o
 
     return 0;
 }
+
+int write_audio_file_raw(audio_file *aufile, void *sample_buffer,
+                             unsigned int samples)
+{
+    aufile->total_samples += samples;
+
+    return fwrite(sample_buffer, samples, aufile->bits_per_sample/8, aufile->sndfile);
+}
+
 
 void close_audio_file(audio_file *aufile)
 {
@@ -141,12 +152,12 @@ static int write_wav_header(audio_file *aufile)
     unsigned char header[44];
     unsigned char* p = header;
     unsigned int bytes = (aufile->bits_per_sample + 7) / 8;
-    float data_size = (float)bytes * aufile->total_samples;
+    double data_size = (double)bytes * aufile->total_samples;
     unsigned long word32;
 
     *p++ = 'R'; *p++ = 'I'; *p++ = 'F'; *p++ = 'F';
 
-    word32 = (data_size + (44 - 8) < (float)MAXWAVESIZE) ?
+    word32 = (data_size + (44 - 8) < (double)MAXWAVESIZE) ?
         (unsigned long)data_size + (44 - 8)  :  (unsigned long)MAXWAVESIZE;
     *p++ = (unsigned char)(word32 >>  0);
     *p++ = (unsigned char)(word32 >>  8);

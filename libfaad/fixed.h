@@ -152,7 +152,7 @@ static INLINE void ComplexMult(real_t *y1, real_t *y2,
     *y1 = MUL_F(x1, c1) + MUL_F(x2, c2);
     *y2 = MUL_F(x2, c1) - MUL_F(x1, c2);
 }
-#endif
+#endif /* defined(_WIN32) && !defined(_WIN32_WCE) */
 
 #elif defined(__GNUC__) && defined (__arm__)
 
@@ -230,12 +230,15 @@ static INLINE void ComplexMult(real_t *y1, real_t *y2,
     *y2 = yt2 << (FRAC_SIZE-FRAC_BITS);
 }
 
-#else
+#else /* defined(__GNUC__) && defined (__arm__) */
 
+#ifndef PADRE
   /* multiply with real shift */
   #define MUL_R(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (REAL_BITS-1))) >> REAL_BITS)
   /* multiply with coef shift */
   #define MUL_C(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (COEF_BITS-1))) >> COEF_BITS)
+#endif
+
   /* multiply with fractional shift */
 #if defined(_WIN32_WCE) && defined(_ARM_)
   /* eVC for PocketPC has an intrinsic function that returns only the high 32 bits of a 32x32 bit multiply */
@@ -243,7 +246,7 @@ static INLINE void ComplexMult(real_t *y1, real_t *y2,
   {
       return _MulHigh(A,B) << (32-FRAC_BITS);
   }
-#else
+#else /* defined(_WIN32_WCE) && defined(_ARM_) */
 #ifdef __BFIN__
 #define _MulHigh(X,Y) ({ int __xxo;                      \
      asm (                                               \
@@ -260,12 +263,93 @@ static INLINE void ComplexMult(real_t *y1, real_t *y2,
          "a1 = a1 >>> 16;\n\t"                           \
          "%0 = (a0 += a1);\n\t"                          \
          : "=d" (__xxo) : "d" (X), "d" (Y) : "A0","A1"); __xxo; })
-#else
+#elif defined(__GNUC__) && defined (PADRE)
+static INLINE real_t MUL_R(real_t A, real_t B)
+{
+    real_t __hi;
+    real_t __lo;
+    real_t __result;
+    __asm__ __volatile__ (
+        " nop\n"
+        " nop\n"
+        " smul %3, %4, %0\n"
+        " mov %%y, %1\n"
+        " srl %0, %5, %0\n"
+        " sll %1, %6, %1\n"
+        " add %0, %1, %2\n"
+        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
+        : "%r"(A), "r"(B), "r"(REAL_BITS), "r"(32 - REAL_BITS)
+        : "cc"
+    );
+    return __result;
+}
+
+static INLINE real_t MUL_C(real_t A, real_t B)
+{
+    real_t __hi;
+    real_t __lo;
+    real_t __result;
+    __asm__ __volatile__ (
+        " nop\n"
+        " nop\n"
+        " smul %3, %4, %0\n"
+        " mov %%y, %1\n"
+        " srl %0, %5, %0\n"
+        " sll %1, %6, %1\n"
+        " add %0, %1, %2\n"
+        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
+        : "%r"(A), "r"(B), "r"(COEF_BITS), "r"(32 - COEF_BITS)
+        : "cc"
+    );
+    return __result;
+}
+
+static INLINE real_t MUL_Q2(real_t A, real_t B)
+{
+    real_t __hi;
+    real_t __lo;
+    real_t __result;
+    __asm__ __volatile__ (
+        " nop\n"
+        " nop\n"
+        " smul %3, %4, %0\n"
+        " mov %%y, %1\n"
+        " srl %0, %5, %0\n"
+        " sll %1, %6, %1\n"
+        " add %0, %1, %2\n"
+        : "=&r"(__lo), "=&r"(__hi), "=r"(__result)
+        : "%r"(A), "r"(B), "r"(Q2_BITS), "r"(32 - Q2_BITS)
+        : "cc"
+    );
+    return __result;
+}
+
+static INLINE real_t _MulHigh(real_t x, real_t y)
+{
+    register int z;
+    __asm__ __volatile__ (
+        " nop\n"
+        " nop\n"
+        " smul %1,%2,%%g0\n"
+        " mov %%y,%0\n"
+        : "=r"(z)
+        : "r"(x), "r"(y)
+    );
+    return z;
+}
+
+static INLINE real_t MUL_F(real_t A, real_t B)
+{
+    return _MulHigh(A, B) << (FRAC_SIZE-FRAC_BITS);
+}
+#else /* __BFIN__ */
   #define _MulHigh(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (FRAC_SIZE-1))) >> FRAC_SIZE)
   #define MUL_F(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (FRAC_BITS-1))) >> FRAC_BITS)
 #endif
 #endif
+#ifndef PADRE
   #define MUL_Q2(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (Q2_BITS-1))) >> Q2_BITS)
+#endif
   #define MUL_SHIFT6(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (6-1))) >> 6)
   #define MUL_SHIFT23(A,B) (real_t)(((int64_t)(A)*(int64_t)(B)+(1 << (23-1))) >> 23)
 

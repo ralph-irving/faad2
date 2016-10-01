@@ -224,6 +224,8 @@ static uint8_t mp4ff_atom_name_to_type(const int8_t a, const int8_t b,
         return ATOM_DESCRIPTION;
     else if (mp4ff_atom_compare(a,b,c,d, 'p','c','s','t'))
         return ATOM_PODCAST;
+    else if (mp4ff_atom_compare(a,b,c,d, 'a','l','a','c'))
+        return ATOM_ALAC;
     else
         return ATOM_UNKNOWN;
 }
@@ -375,6 +377,65 @@ static int32_t mp4ff_read_mp4a(mp4ff_t *f)
     return 0;
 }
 
+static int32_t mp4ff_read_alac_desc(mp4ff_t *f, uint64_t size, uint8_t header_size)
+{
+    f->track[f->total_tracks - 1]->decoderConfigLen = size - header_size;
+
+    if (f->track[f->total_tracks - 1]->decoderConfig)
+        free(f->track[f->total_tracks - 1]->decoderConfig);
+    f->track[f->total_tracks - 1]->decoderConfig = malloc(f->track[f->total_tracks - 1]->decoderConfigLen);
+    if (f->track[f->total_tracks - 1]->decoderConfig)
+    {
+        mp4ff_read_data(f, f->track[f->total_tracks - 1]->decoderConfig, f->track[f->total_tracks - 1]->decoderConfigLen);
+    } else {
+        f->track[f->total_tracks - 1]->decoderConfigLen = 0;
+    }
+
+    /* will skip the remainder of the atom */
+    return 0;
+}
+
+static int32_t mp4ff_read_alac(mp4ff_t *f)
+{
+    uint64_t size;
+    int32_t i;
+    uint8_t atom_type = 0;
+    uint8_t header_size = 0;
+	int version;
+
+    for (i = 0; i < 6; i++)
+    {
+        mp4ff_read_char(f); /* reserved */
+    }
+
+    version = mp4ff_read_int16(f);
+    if (version != 1) {
+    	return 1;
+    }
+
+    mp4ff_read_int16(f);	/* revision level */
+    mp4ff_read_int32(f);	/* vendor */
+    mp4ff_read_int16(f);	/* ?? */
+
+    f->track[f->total_tracks - 1]->channelCount = mp4ff_read_int16(f);
+    f->track[f->total_tracks - 1]->sampleSize = mp4ff_read_int16(f);
+
+    mp4ff_read_int16(f);	/* compression id */
+    mp4ff_read_int16(f);	/* packet size */
+
+    f->track[f->total_tracks - 1]->sampleRate = mp4ff_read_int16(f);
+
+    mp4ff_read_int16(f);	/* ?? */
+
+    size = mp4ff_atom_read_header(f, &atom_type, &header_size);
+    if (atom_type == ATOM_ALAC)
+    {
+        mp4ff_read_alac_desc(f, size, header_size);
+    }
+
+    return 0;
+}
+
 static int32_t mp4ff_read_stsd(mp4ff_t *f)
 {
     int32_t i;
@@ -395,12 +456,15 @@ static int32_t mp4ff_read_stsd(mp4ff_t *f)
 
         if (atom_type == ATOM_MP4A)
         {
-            f->track[f->total_tracks - 1]->type = TRACK_AUDIO;
+            f->track[f->total_tracks - 1]->type = TRACK_AUDIO_AAC;
             mp4ff_read_mp4a(f);
         } else if (atom_type == ATOM_MP4V) {
             f->track[f->total_tracks - 1]->type = TRACK_VIDEO;
         } else if (atom_type == ATOM_MP4S) {
             f->track[f->total_tracks - 1]->type = TRACK_SYSTEM;
+        } else if (atom_type == ATOM_ALAC) {
+            f->track[f->total_tracks - 1]->type = TRACK_AUDIO_ALAC;
+            mp4ff_read_alac(f);
         } else {
             f->track[f->total_tracks - 1]->type = TRACK_UNKNOWN;
         }

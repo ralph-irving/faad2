@@ -312,6 +312,11 @@ uint32_t mp4ff_get_sample_rate(const mp4ff_t *f, const int32_t track)
 	return f->track[track]->sampleRate;
 }
 
+uint32_t mp4ff_get_sample_size(const mp4ff_t *f, const int32_t track)
+{
+	return f->track[track]->sampleSize;
+}
+
 uint32_t mp4ff_get_channel_count(const mp4ff_t * f,const int32_t track)
 {
 	return f->track[track]->channelCount;
