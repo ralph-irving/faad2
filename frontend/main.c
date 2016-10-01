@@ -490,8 +490,12 @@ static int decodeAACfile(char *aacfile, char *sndfile, char *adts_fn, int to_std
     retval = fseek(b.infile, 0, SEEK_END);
 #ifdef _WIN32
 	if (0 == strcmp(aacfile, "-")) {
-	  retval = -1;
+		retval = -1;
+	} else {
+		retval = fseek(b.infile, 0, SEEK_END);
 	}
+#else
+	retval = fseek(b.infile, 0, SEEK_END);
 #endif
     if (retval )
     {
@@ -1463,6 +1467,7 @@ int main(int argc, char *argv[])
     faad_fprintf(stderr, " * ALAC decoder integrated\n");
     faad_fprintf(stderr, " * Seeking support with -j and -e switches\n");
     faad_fprintf(stderr, " * STDIN support\n");
+    faad_fprintf(stderr, " * utgg STDOUT patch\n");
     faad_fprintf(stderr, " * Source at http://svn.slimdevices.com/repos/slim/7.5/trunk/vendor/faad2\n\n");
     faad_fprintf(stderr, " Build: %s\n", __DATE__);
     faad_fprintf(stderr, " Copyright 2002-2004: Ahead Software AG\n");
