@@ -65,7 +65,7 @@ static __inline__ int32_t S32XS32(int32_t x, int32_t y)
     return z;
 }
 #else
-static __inline__ int32_t S32XS32(int32_t x, int32_t y)
+static __inline int32_t S32XS32(int32_t x, int32_t y)
 {
     int32_t z;
     z = x * y;
