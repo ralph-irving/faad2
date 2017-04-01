@@ -358,7 +358,7 @@ static int write_audio_24bit(audio_file *aufile, void *sample_buffer,
 {
     int ret;
     unsigned int i;
-    long *sample_buffer24 = (long*)sample_buffer;
+    int *sample_buffer24 = (int*)sample_buffer;
     char *data = malloc(samples*aufile->bits_per_sample*sizeof(char)/8);
 
     aufile->total_samples += samples;
@@ -402,7 +402,7 @@ static int write_audio_32bit(audio_file *aufile, void *sample_buffer,
 {
     int ret;
     unsigned int i;
-    long *sample_buffer32 = (long*)sample_buffer;
+    int *sample_buffer32 = (int*)sample_buffer;
     char *data = malloc(samples*aufile->bits_per_sample*sizeof(char)/8);
 
     aufile->total_samples += samples;
