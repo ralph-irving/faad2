@@ -8,5 +8,5 @@ faad_LDADD = $(top_builddir)/libfaad/libfaad.la \
 	     $(top_builddir)/common/mp4ff/libmp4ff.la
 
 faad_SOURCES = main.c \
-	       audio.c audio.h \
+	       audio.c audio.h alac.c \
 	       $(top_srcdir)/common/faad/getopt.c
