@@ -44,6 +44,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include <limits.h>
+
+#ifndef PATH_MAX
+#define PATH_MAX 1023
+#endif
 
 #include <neaacdec.h>
 #include <mp4ff.h>
@@ -1300,9 +1305,9 @@ int main(int argc, char *argv[])
     int mp4file = 0;
     int noGapless = 0;
     char *fnp;
-    char aacFileName[255];
-    char audioFileName[255];
-    char adtsFileName[255];
+    char aacFileName[PATH_MAX + 1];
+    char audioFileName[PATH_MAX + 1];
+    char adtsFileName[PATH_MAX + 1];
     float seekTo = 0;
     float seekEnd = 0;
     unsigned char header[8];
@@ -1354,14 +1359,14 @@ int main(int argc, char *argv[])
             if (optarg)
             {
                 outfile_set = 1;
-                strcpy(audioFileName, optarg);
+                strncpy(audioFileName, optarg, PATH_MAX);
             }
             break;
         case 'a':
             if (optarg)
             {
                 adts_out = 1;
-                strcpy(adtsFileName, optarg);
+                strncpy(adtsFileName, optarg, PATH_MAX);
             }
             break;
         case 's':
@@ -1500,7 +1505,7 @@ int main(int argc, char *argv[])
 #endif
 
     /* point to the specified file name */
-    strcpy(aacFileName, argv[optind]);
+    strncpy(aacFileName, argv[optind], PATH_MAX);
 
 #ifdef _WIN32
     begin = GetTickCount();
@@ -1513,14 +1518,14 @@ int main(int argc, char *argv[])
      */
     if(!writeToStdio && !outfile_set)
     {
-        strcpy(audioFileName, aacFileName);
+        strncpy(audioFileName, aacFileName, PATH_MAX);
 
         fnp = (char *)strrchr(audioFileName,'.');
 
         if (fnp)
             fnp[0] = '\0';
 
-        strcat(audioFileName, file_ext[format]);
+        strncat(audioFileName, file_ext[format], PATH_MAX - strlen(audioFileName));
     }
 
     /* check for mp4 file */
