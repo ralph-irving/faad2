@@ -330,7 +330,7 @@ char *strchr(), *strrchr();
     #ifndef HAVE_LRINTF
     #define HAS_LRINTF
     // from http://www.stereopsis.com/FPU.html
-    static INLINE int lrintf(float f)
+    static INLINE int _lrintf(float f)
     {
         int i;
         __asm__ __volatile__ (
@@ -396,7 +396,7 @@ char *strchr(), *strrchr();
 
 #ifndef HAS_LRINTF
 /* standard cast */
-#define lrintf(f) ((int32_t)(f))
+#define _lrintf(f) ((int32_t)(f))
 #endif
 
 typedef real_t complex_t[2];
