@@ -332,6 +332,14 @@ static int count_leading_zeros(int input)
     output -= ((unsigned int)input >> 31);
     return output;
 }
+#elif defined(__arm__)
+static int count_leading_zeros(int input)
+{
+    int output = 0;
+    if (!input) return 32;
+    asm("clz %0, %1" : "=r" (output) : "r" (input));
+    return output;
+}
 #else
 #warning using generic count leading zeroes. You may wish to write one for your CPU / compiler
 static int count_leading_zeros(int input)
