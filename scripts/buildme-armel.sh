@@ -6,7 +6,7 @@ CHANGENO=`git rev-parse --short HEAD`
 ARCH=armel
 OUTPUT=$PWD/faad2-build-$ARCH-$CHANGENO
 export CFLAGS="-fno-exceptions -Wall -fsigned-char -O4 -fomit-frame-pointer -funroll-all-loops -finline-functions -ffast-math -march=armv5te -s"
-export CXXFLAGS=$CFLAGS
+export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,-rpath,/usr/local/lib"
 
 # Clean up
