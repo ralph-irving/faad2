@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
+# Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faad", "faad.vcproj", "{2BD8CBB3-DFC9-4A6A-9B7A-07ED749BED58}"
 	ProjectSection(ProjectDependencies) = postProject
 		{F470BB4A-7675-4D6A-B310-41F33AC6F987} = {F470BB4A-7675-4D6A-B310-41F33AC6F987}

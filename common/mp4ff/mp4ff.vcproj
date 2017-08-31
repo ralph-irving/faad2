@@ -69,9 +69,6 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalOptions=""
-				OutputFile=".\Release\mp4ff.lib"
-				SuppressStartupBanner="true"
 			/>
 			<Tool
 				Name="VCALinkTool"

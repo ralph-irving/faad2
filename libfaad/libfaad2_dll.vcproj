@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="9.00"
 	Name="libfaad2_dll"
 	ProjectGUID="{482DA264-EE88-4575-B208-87C4CB80CD08}"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -82,6 +83,8 @@
 				ModuleDefinitionFile=".\libfaad2.def"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\DebugDLL/libfaad2.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\DebugDLL/libfaad2.lib"
 			/>
 			<Tool
@@ -101,9 +104,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -145,7 +145,7 @@
 				InlineFunctionExpansion="1"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				AdditionalIncludeDirectories=""
+				AdditionalIncludeDirectories="$(SolutionDir)..\include"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;libfaad2_dll_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -178,6 +178,8 @@
 				SuppressStartupBanner="true"
 				ModuleDefinitionFile=".\libfaad2.def"
 				ProgramDatabaseFile=".\ReleaseDLL/libfaad2.pdb"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 				ImportLibrary=".\ReleaseDLL/libfaad2.lib"
 			/>
 			<Tool
@@ -197,9 +199,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
