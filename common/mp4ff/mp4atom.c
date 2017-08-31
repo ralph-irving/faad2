@@ -260,6 +260,9 @@ uint64_t mp4ff_atom_read_header(mp4ff_t *f, uint8_t *atom_type, uint8_t *header_
 
 static int32_t mp4ff_read_stsz(mp4ff_t *f)
 {
+    if (f->total_tracks == 0)
+        return f->error++;
+
     mp4ff_read_char(f); /* version */
     mp4ff_read_int24(f); /* flags */
     f->track[f->total_tracks - 1]->stsz_sample_size = mp4ff_read_int32(f);
@@ -271,7 +274,10 @@ static int32_t mp4ff_read_stsz(mp4ff_t *f)
         f->track[f->total_tracks - 1]->stsz_table =
             (int32_t*)malloc(f->track[f->total_tracks - 1]->stsz_sample_count*sizeof(int32_t));
 
-        for (i = 0; i < f->track[f->total_tracks - 1]->stsz_sample_count; i++)
+        if (!f->track[f->total_tracks - 1]->stsz_table)
+            return f->error++;
+
+        for (i = 0; i < f->track[f->total_tracks - 1]->stsz_sample_count && !f->stream->read_error; i++)
         {
             f->track[f->total_tracks - 1]->stsz_table[i] = mp4ff_read_int32(f);
         }
@@ -284,6 +290,9 @@ static int32_t mp4ff_read_esds(mp4ff_t *f)
 {
     uint8_t tag;
     uint32_t temp;
+
+    if (f->total_tracks == 0)
+        return f->error++;
 
     mp4ff_read_char(f); /* version */
     mp4ff_read_int24(f); /* flags */
@@ -348,6 +357,9 @@ static int32_t mp4ff_read_mp4a(mp4ff_t *f)
     int32_t i;
     uint8_t atom_type = 0;
     uint8_t header_size = 0;
+
+    if (f->total_tracks == 0)
+        return f->error++;
 
     for (i = 0; i < 6; i++)
     {
@@ -441,12 +453,16 @@ static int32_t mp4ff_read_stsd(mp4ff_t *f)
     int32_t i;
     uint8_t header_size = 0;
 
+    /* CVE-2017-9218 */
+    if (f->total_tracks == 0)
+        return f->error++;
+
     mp4ff_read_char(f); /* version */
     mp4ff_read_int24(f); /* flags */
 
     f->track[f->total_tracks - 1]->stsd_entry_count = mp4ff_read_int32(f);
 
-    for (i = 0; i < f->track[f->total_tracks - 1]->stsd_entry_count; i++)
+    for (i = 0; i < f->track[f->total_tracks - 1]->stsd_entry_count && !f->stream->read_error; i++) /* CVE-2017-9253 */
     {
         uint64_t skip = mp4ff_position(f);
         uint64_t size;
@@ -479,6 +495,9 @@ static int32_t mp4ff_read_stsc(mp4ff_t *f)
 {
     int32_t i;
 
+    if (f->total_tracks == 0)
+        return f->error++;
+
     mp4ff_read_char(f); /* version */
     mp4ff_read_int24(f); /* flags */
     f->track[f->total_tracks - 1]->stsc_entry_count = mp4ff_read_int32(f);
@@ -490,7 +509,27 @@ static int32_t mp4ff_read_stsc(mp4ff_t *f)
     f->track[f->total_tracks - 1]->stsc_sample_desc_index =
         (int32_t*)malloc(f->track[f->total_tracks - 1]->stsc_entry_count*sizeof(int32_t));
 
-    for (i = 0; i < f->track[f->total_tracks - 1]->stsc_entry_count; i++)
+    /* CVE-2017-9219 */
+    if (!f->track[f->total_tracks - 1]->stsc_first_chunk)
+    {
+        return f->error++;
+    }
+    if (!f->track[f->total_tracks - 1]->stsc_samples_per_chunk)
+    {
+        free(f->track[f->total_tracks - 1]->stsc_first_chunk);
+        f->track[f->total_tracks - 1]->stsc_first_chunk = NULL;
+        return f->error++;
+    }
+    if (!f->track[f->total_tracks - 1]->stsc_sample_desc_index)
+    {
+        free(f->track[f->total_tracks - 1]->stsc_first_chunk);
+        f->track[f->total_tracks - 1]->stsc_first_chunk = NULL;
+        free(f->track[f->total_tracks - 1]->stsc_samples_per_chunk);
+        f->track[f->total_tracks - 1]->stsc_samples_per_chunk = NULL;
+        return f->error++;
+    }
+
+    for (i = 0; i < f->track[f->total_tracks - 1]->stsc_entry_count && !f->stream->read_error; i++) /* CVE-2017-9255 */
     {
         f->track[f->total_tracks - 1]->stsc_first_chunk[i] = mp4ff_read_int32(f);
         f->track[f->total_tracks - 1]->stsc_samples_per_chunk[i] = mp4ff_read_int32(f);
@@ -504,6 +543,9 @@ static int32_t mp4ff_read_stco(mp4ff_t *f)
 {
     int32_t i;
 
+    if (f->total_tracks == 0)
+        return f->error++;
+
     mp4ff_read_char(f); /* version */
     mp4ff_read_int24(f); /* flags */
     f->track[f->total_tracks - 1]->stco_entry_count = mp4ff_read_int32(f);
@@ -511,7 +553,11 @@ static int32_t mp4ff_read_stco(mp4ff_t *f)
     f->track[f->total_tracks - 1]->stco_chunk_offset =
         (int32_t*)malloc(f->track[f->total_tracks - 1]->stco_entry_count*sizeof(int32_t));
 
-    for (i = 0; i < f->track[f->total_tracks - 1]->stco_entry_count; i++)
+    /* CVE-2017-9220 */
+    if (!f->track[f->total_tracks - 1]->stco_chunk_offset)
+        return f->error++;
+
+    for (i = 0; i < f->track[f->total_tracks - 1]->stco_entry_count && !f->stream->read_error; i++) /* CVE-2017-9256 */
     {
         f->track[f->total_tracks - 1]->stco_chunk_offset[i] = mp4ff_read_int32(f);
     }
@@ -522,8 +568,12 @@ static int32_t mp4ff_read_stco(mp4ff_t *f)
 static int32_t mp4ff_read_ctts(mp4ff_t *f)
 {
     int32_t i;
-    mp4ff_track_t * p_track = f->track[f->total_tracks - 1];
+    mp4ff_track_t * p_track;
 
+    if (f->total_tracks == 0)
+        return f->error++;
+
+    p_track = f->track[f->total_tracks - 1];
     if (p_track->ctts_entry_count) return 0;
 
     mp4ff_read_char(f); /* version */
@@ -542,7 +592,7 @@ static int32_t mp4ff_read_ctts(mp4ff_t *f)
     }
     else
     {
-        for (i = 0; i < f->track[f->total_tracks - 1]->ctts_entry_count; i++)
+        for (i = 0; i < f->track[f->total_tracks - 1]->ctts_entry_count && !f->stream->read_error; i++) /* CVE-2017-9257 */
         {
             p_track->ctts_sample_count[i] = mp4ff_read_int32(f);
             p_track->ctts_sample_offset[i] = mp4ff_read_int32(f);
@@ -554,7 +604,13 @@ static int32_t mp4ff_read_ctts(mp4ff_t *f)
 static int32_t mp4ff_read_stts(mp4ff_t *f)
 {
     int32_t i;
-    mp4ff_track_t * p_track = f->track[f->total_tracks - 1];
+    mp4ff_track_t * p_track;
+
+    /* CVE-2017-9223 */
+    if (f->total_tracks == 0)
+        return f->error++;
+
+    p_track = f->track[f->total_tracks - 1];
 
     if (p_track->stts_entry_count) return 0;
 
@@ -574,7 +630,7 @@ static int32_t mp4ff_read_stts(mp4ff_t *f)
     }
     else
     {
-        for (i = 0; i < f->track[f->total_tracks - 1]->stts_entry_count; i++)
+        for (i = 0; i < f->track[f->total_tracks - 1]->stts_entry_count && !f->stream->read_error; i++) /* CVE-2017-9254 */
         {
             p_track->stts_sample_count[i] = mp4ff_read_int32(f);
             p_track->stts_sample_delta[i] = mp4ff_read_int32(f);
@@ -660,6 +716,10 @@ static int32_t mp4ff_read_tkhd(mp4ff_t *f)
 static int32_t mp4ff_read_mdhd(mp4ff_t *f)
 {
     uint32_t version;
+
+    /* CVE-2017-9221 */
+    if (f->total_tracks == 0)
+        return f->error++;
 
     version = mp4ff_read_int32(f);
     if (version==1)
