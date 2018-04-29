@@ -91,7 +91,7 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 libmp4_la_DEPENDENCIES = $(top_builddir)/libfaad/libfaad.la \
-	$(top_builddir)/common/mp4ff/libmp4ff.a
+	$(top_builddir)/common/mp4ff/libmp4ff.la
 am_libmp4_la_OBJECTS = libmp4_la-libmp4.lo libmp4_la-mp4_utils.lo \
 	libmp4_la-aac_utils.lo
 libmp4_la_OBJECTS = $(am_libmp4_la_OBJECTS)
@@ -252,7 +252,7 @@ libmp4_la_CFLAGS = $(local_CFLAGS) -Wall \
        -I$(top_srcdir)/include -I$(top_srcdir)/common/mp4ff
 
 libmp4_la_LIBADD = $(top_builddir)/libfaad/libfaad.la \
-       $(top_builddir)/common/mp4ff/libmp4ff.a
+       $(top_builddir)/common/mp4ff/libmp4ff.la
 
 libmp4_la_LDFLAGS = -module -avoid-version $(local_LDFLAGS) -lpthread
 libmp4_la_SOURCES = libmp4.c mp4_utils.c aac_utils.c
