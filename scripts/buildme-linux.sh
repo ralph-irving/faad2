@@ -13,7 +13,7 @@ export LDFLAGS="-Wl,-rpath,/usr/local/lib"
 rm -rf $OUTPUT
 
 ## Start
-echo "Most log mesages sent to $LOG... only 'errors' displayed here"
+echo "Most log messages sent to $LOG... only 'errors' displayed here"
 date > $LOG
 
 ## Build
