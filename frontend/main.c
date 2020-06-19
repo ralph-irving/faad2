@@ -1083,9 +1083,10 @@ static int GetALACTrack(mp4ff_t *infile)
     int i, rc;
     int numTracks = mp4ff_total_tracks(infile);
 
+	faad_fprintf(stderr, "numTracks: %d\n", numTracks );
     for (i = 0; i < numTracks; i++)
     {
-        if (mp4ff_get_track_type(infile, i) == TRACK_AUDIO_ALAC)
+	if (mp4ff_get_track_type(infile, i) == TRACK_AUDIO_ALAC)
         	return i;
     }
 
@@ -1559,6 +1560,8 @@ int main(int argc, char *argv[])
     	faad_fprintf(stderr, "Warning: can only seek in MP4 files");
     }
 
+    faad_fprintf(stderr, "mp4file: %d\n", mp4file);
+
     if (mp4file)
     {
     	mp4ff_t *infile;
@@ -1574,18 +1577,43 @@ int main(int argc, char *argv[])
         /* initialise the callback structure */
         mp4cb = malloc(sizeof(mp4ff_callback_t));
 
-        mp4File = fopen(aacFileName	, "rb");
+	if ( !readFromStdin )
+	{
+	        mp4File = fopen(aacFileName, "rb");
+	}
+	else
+	{
+		mp4File = hMP4File;
+		if ( seekTo || seekEnd )
+		{
+			faad_fprintf(stderr, "Cannot seek MP4 file from stdin, ignoring -j/-e.\n");
+			seekTo = 0.0;
+			seekEnd = 0.0;
+		}
+
+		ungetc(header[7],hMP4File);
+		ungetc(header[6],hMP4File);
+		ungetc(header[5],hMP4File);
+		ungetc(header[4],hMP4File);
+		ungetc(header[3],hMP4File);
+		ungetc(header[2],hMP4File);
+		ungetc(header[1],hMP4File);
+		ungetc(header[0],hMP4File);
+	}
+
         mp4cb->read = read_callback;
         mp4cb->seek = seek_callback;
         mp4cb->user_data = mp4File;
 
         infile = mp4ff_open_read(mp4cb);
+
         if (!infile)
         {
             /* unable to open file */
             faad_fprintf(stderr, "Error opening file: %s\n", mp4file);
             free(mp4cb);
-            fclose(mp4File);
+            if ( !readFromStdin )
+	            fclose(mp4File);
             return 1;
         }
 
@@ -1600,8 +1628,9 @@ int main(int argc, char *argv[])
                 faad_fprintf(stderr, "Cannot output ADTS format from ALAC file %s\n", aacFileName);
                 mp4ff_close(infile);
                 free(mp4cb);
-                fclose(mp4File);
-				return 1;
+                if ( !readFromStdin )
+                    fclose(mp4File);
+		return 1;
             }
 
             if (outputFormatSet)
@@ -1609,8 +1638,9 @@ int main(int argc, char *argv[])
                 faad_fprintf(stderr, "Cannot specify output format for ALAC file %s\n", aacFileName);
                 mp4ff_close(infile);
                 free(mp4cb);
-                fclose(mp4File);
-				return 1;
+                if ( !readFromStdin )
+                    fclose(mp4File);
+		return 1;
             }
 
            	result = decodeMP4fileALAC(infile, audioFileName, writeToStdio,
@@ -1619,14 +1649,16 @@ int main(int argc, char *argv[])
             faad_fprintf(stderr, "Unsupported ALAC file %s\n", aacFileName);
             mp4ff_close(infile);
             free(mp4cb);
-            fclose(mp4File);
-			return 1;
+            if ( !readFromStdin )
+                fclose(mp4File);
+            return 1;
 #endif
         }
 
         mp4ff_close(infile);
         free(mp4cb);
-        fclose(mp4File);
+        if ( !readFromStdin )
+            fclose(mp4File);
 
     } else {
 
