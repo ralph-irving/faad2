@@ -33,7 +33,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#ifdef _WIN32
+#if defined(_WIN32) && ! defined(__MINGW32__)
 	#include "stdint_win.h"
 #else
 	#include <stdint.h>
