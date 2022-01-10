@@ -5,7 +5,8 @@
 
 #ifdef __MINGW32__
 #include <stdlib.h>
-#endif /* #ifdef __MINGW32__ */
+#include <stdint.h>
+#else /* #ifdef __MINGW32__ */
 
 typedef signed char int8_t;
 typedef unsigned char uint8_t;
@@ -16,6 +17,7 @@ typedef unsigned long uint32_t;
 
 typedef signed __int64 int64_t;
 typedef unsigned __int64 uint64_t;
+#endif
 
 #else
 
