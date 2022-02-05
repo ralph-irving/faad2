@@ -972,6 +972,13 @@ static int decodeMP4fileAAC(mp4ff_t *infile, char *sndfile, char *adts_fn, int t
 
         sample_buffer = NeAACDecDecode(hDecoder, &frameInfo, buffer, buffer_size);
 
+        if (!sample_buffer)
+        {
+            faad_fprintf(stderr, "Error decoding file.\n");
+            NeAACDecClose(hDecoder);
+            return 1;
+        }
+
         if (adts_out == 1)
         {
             adtsData = MakeAdtsHeader(&adtsDataSize, &frameInfo, 0);
