@@ -318,6 +318,14 @@ static int count_leading_zeros(int input)
     }
     return output;
 }
+#elif defined(__GNUC__) && (defined(__x86_64) || defined(__x86_64__))
+static int count_leading_zeros(int input)
+{
+    int output = 0;
+    if (!input) return 32;
+    output = __builtin_clz(input);
+    return output;
+}
 #elif defined(PADRE)
 static int count_leading_zeros(int input)
 {
