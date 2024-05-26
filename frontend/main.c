@@ -1279,7 +1279,7 @@ static int decodeMP4fileALAC(mp4ff_t *infile, char *sndfile, int to_stdout,
 
         if (sample_count > 0)
         {
-            if (write_audio_file_raw(aufile, sample_buffer, sample_count, delay) == 0)
+            if (write_audio_file_raw(aufile, sample_buffer, sample_count) == 0)
                 break;
         }
 

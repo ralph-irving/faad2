@@ -121,7 +121,7 @@ int write_audio_file(audio_file *aufile, void *sample_buffer, int samples, int o
 }
 
 int write_audio_file_raw(audio_file *aufile, void *sample_buffer,
-                             unsigned int samples)
+                             long samples)
 {
     aufile->total_samples += samples;
 
